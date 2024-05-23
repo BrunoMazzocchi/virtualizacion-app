@@ -1,23 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+import { jwtDecode } from "jwt-decode";
+import React, { useEffect, useState } from "react";
+import "./App.css";
+import Courses from "./components/Courses";
+import Login from "./components/Login";
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+
+        // Check if token is expired
+        if (decodedToken.exp > currentTime) {
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem("token");
+        }
+      } catch (error) {
+        console.error("Invalid token:", error);
+        localStorage.removeItem("token");
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {isAuthenticated ? <Courses onLogout={handleLogout} /> : <Login />}
     </div>
   );
 }
