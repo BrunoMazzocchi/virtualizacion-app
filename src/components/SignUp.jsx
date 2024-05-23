@@ -1,39 +1,53 @@
 import axios from 'axios';
 import React, { useState } from 'react';
 
-const Login = () => {
+const SignUp = () => {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleLogin = async (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3000/users/auth/login', {
-        email,
-        password,
-      });
-
-      if (response.data.message === 'Login successful') {
-        localStorage.setItem('token', response.data.token);
+      const response = await axios.post(
+        'http://localhost:3000/users/auth/register',
+        {
+          username,
+          email,
+          password,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+      if (response.data.message === 'User registered successfully') {
         setErrorMessage('');
-        alert('Login successful!');
-        // Relocate to /courses
-        window.location.href = '/courses';
+        alert('SignUp successful!');
+        // Relocate to /login
+        window.location.href = '/login';
       }
     } catch (error) {
-      setErrorMessage('Invalid email or password');
+      setErrorMessage('Error signing up. Please try again.');
     }
   };
-
-  const handleSignUpRedirect = () => {
-    window.location.href = '/signup';
-  };
-
   return (
-    <div className="login-container">
-      <form className="login-form" onSubmit={handleLogin}>
-        <h2>Login</h2>
+    <div className="signup-container">
+      <form className="signup-form" onSubmit={handleSignUp}>
+        <h2>Sign Up</h2>
+        <div className="input-group">
+          <label htmlFor="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
         <div className="input-group">
           <label htmlFor="email">Email</label>
           <input
@@ -55,18 +69,17 @@ const Login = () => {
           />
         </div>
         {errorMessage && <p className="error">{errorMessage}</p>}
-        <button type="submit">Login</button>
-        <button type="button" onClick={handleSignUpRedirect} className="signup-button">Sign Up</button>
+        <button type="submit">Sign Up</button>
       </form>
       <style jsx>{`
-        .login-container {
+        .signup-container {
           display: flex;
           justify-content: center;
           align-items: center;
           height: 100vh;
           background-color: #f0f0f0;
         }
-        .login-form {
+        .signup-form {
           background: #fff;
           padding: 2rem;
           border-radius: 5px;
@@ -101,20 +114,13 @@ const Login = () => {
           color: #fff;
           font-size: 1rem;
           cursor: pointer;
-          margin-bottom: 0.5rem;
         }
         button:hover {
           background: #0056b3;
-        }
-        .signup-button {
-          background: #28a745;
-        }
-        .signup-button:hover {
-          background: #218838;
         }
       `}</style>
     </div>
   );
 };
 
-export default Login;
+export default SignUp;

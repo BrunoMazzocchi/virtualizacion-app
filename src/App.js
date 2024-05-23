@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import Courses from "./components/Courses";
 import Login from "./components/Login";
+import SignUp from "./components/SignUp";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -33,7 +34,13 @@ function App() {
 
   return (
     <div className="App">
-      {isAuthenticated ? <Courses onLogout={handleLogout} /> : <Login />}
+      {isAuthenticated ? (
+        <Courses onLogout={handleLogout} />
+      ) : window.location.pathname.includes("signup") ? (
+        <SignUp />
+      ) : (
+        <Login />
+      )}
     </div>
   );
 }

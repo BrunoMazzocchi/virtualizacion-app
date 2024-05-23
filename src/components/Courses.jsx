@@ -6,6 +6,8 @@ import Navbar from './NavBar';
 const Courses = ({ onLogout }) => {
     const [courses, setCourses] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [selectedCourseId, setSelectedCourseId] = useState(null);
   
     useEffect(() => {
       const token = localStorage.getItem('token');
@@ -44,13 +46,42 @@ const Courses = ({ onLogout }) => {
         if (response.data.message === 'Courses fetched successfully') {
           setCourses(response.data.courses);
         } else {
-          console.log(response);
           setErrorMessage('Failed to fetch courses.');
         }
       } catch (error) {
         console.error('Error fetching courses:', error);
         setErrorMessage('Error fetching courses.');
       }
+    };
+  
+    const handleDeleteClick = (courseId) => {
+      setSelectedCourseId(courseId);
+      setShowConfirm(true);
+    };
+  
+    const handleConfirmDelete = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        await axios.post(
+          `http://localhost:3000/posts/courses/${selectedCourseId}/remove`,
+          {},
+          {
+            headers: {
+              Authorization: `${token}`,
+            },
+          }
+        );
+        setShowConfirm(false);
+        fetchCourses(token, jwtDecode(token).userId);
+      } catch (error) {
+        console.error('Error removing course:', error);
+        setErrorMessage('Error removing course.');
+      }
+    };
+  
+    const handleCancelDelete = () => {
+      setShowConfirm(false);
+      setSelectedCourseId(null);
     };
   
     return (
@@ -64,6 +95,7 @@ const Courses = ({ onLogout }) => {
             <ul className="courses-list">
               {courses.map((course) => (
                 <li key={course.course_id} className="course-item">
+                  <button className="delete-button" onClick={() => handleDeleteClick(course.course_id)}>X</button>
                   <h3>{course.title}</h3>
                   <p>{course.description}</p>
                   <p>
@@ -75,6 +107,13 @@ const Courses = ({ onLogout }) => {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+        {showConfirm && (
+          <div className="confirm-dialog">
+            <p>Si remueve el curso, no podrá agregarlo hasta dentro de 1 año.</p>
+            <button onClick={handleConfirmDelete}>Confirmar</button>
+            <button onClick={handleCancelDelete}>Cancelar</button>
           </div>
         )}
         <style jsx>{`
@@ -98,10 +137,23 @@ const Courses = ({ onLogout }) => {
             max-width: 1200px;
           }
           .course-item {
+            position: relative;
             background: #fff;
             padding: 1rem;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          }
+          .delete-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
           }
           .course-item h3 {
             margin: 0 0 0.5rem 0;
@@ -109,6 +161,24 @@ const Courses = ({ onLogout }) => {
           .error {
             color: red;
             margin-top: 1rem;
+          }
+          .confirm-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+          }
+          .confirm-dialog p {
+            margin-bottom: 1rem;
+          }
+          .confirm-dialog button {
+            margin-right: 1rem;
           }
         `}</style>
       </div>
